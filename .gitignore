@@ -20,7 +20,7 @@ terraform-cicd-practice/crash.*.log
 terraform-backend-bootstrap/crash.log
 terraform-backend-bootstrap/crash.*.log
 
-# OS/editor files
+# OS/editor log files
 .DS_Store
 Thumbs.db
 .vscode/
