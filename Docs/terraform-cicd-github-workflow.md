@@ -246,3 +246,201 @@ output "backend_bucket_arn" {
   value = aws_s3_bucket.terraform_state.arn
 }
 ```
+
+5. Now we create GitHub action flow. Folder structure would be like below.
+```
+DevOps-Home-Lab/
+│
+├── .github/
+│   └── workflows/
+│       ├── terraform-destroy.yml
+│       └── terraform.yml
+│
+├── terraform-cicd-practice/
+│   ├── main.tf
+│   ├── provider.tf
+│   ├── variables.tf
+│   └── outputs.tf
+│
+└── terraform-backend-bootstrap/
+    ├── provider.tf
+    ├── variables.tf
+    ├── main.tf
+    └── outputs.tf
+```
+
+Add following contents.
+
+#### `terraform.yml`
+```
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform-cicd-practice
+
+    env:
+      TF_VAR_bucket_name: bvs-terra-remote-05052026
+      AWS_REGION: eu-west-2
+      AWS_DEFAULT_REGION: eu-west-2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+#### `terraform-destroy.yml`
+```
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform-cicd-practice
+
+    env:
+      TF_VAR_bucket_name: bvs-terra-remote-05052026
+      AWS_REGION: eu-west-2
+      AWS_DEFAULT_REGION: eu-west-2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Destroy Plan
+        run: terraform plan -destroy -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -input=false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+6. Create .gitignore file in the root of the Git repo.
+```
+DevOps-Home-Lab/
+│
+├── .github/
+│   └── workflows/
+│       ├── terraform-destroy.yml
+│       └── terraform.yml
+│
+├── terraform-cicd-practice/
+│   ├── main.tf
+│   ├── provider.tf
+│   ├── variables.tf
+│   └── outputs.tf
+│
+├── terraform-backend-bootstrap/
+│   ├── provider.tf
+│   ├── variables.tf
+│   ├── main.tf
+│   └── outputs.tf
+│
+└── .gitignore
+```
+
+Add the file content.
+
+#### `.gitignore`
+```
+# Terraform generated folders
+terraform-cicd-practice/.terraform/
+terraform-backend-bootstrap/.terraform/
+
+# Terraform state files
+terraform-cicd-practice/*.tfstate
+terraform-cicd-practice/*.tfstate.*
+terraform-backend-bootstrap/*.tfstate
+terraform-backend-bootstrap/*.tfstate.*
+
+# Terraform variable files
+terraform-cicd-practice/*.tfvars
+terraform-cicd-practice/*.tfvars.json
+terraform-backend-bootstrap/*.tfvars
+terraform-backend-bootstrap/*.tfvars.json
+
+# Crash logs
+terraform-cicd-practice/crash.log
+terraform-cicd-practice/crash.*.log
+terraform-backend-bootstrap/crash.log
+terraform-backend-bootstrap/crash.*.log
+
+# OS/editor log files
+.DS_Store
+Thumbs.db
+.vscode/
+```
+
+7. Add AWS credentials to GitHub Secrets
+   In the GitHub dashboard, go to `DevOps-Home-Lab` -> `Settings` -> `Secrets and variables` -> `Actions` Click on `New repository secret` button and create two Secrets for aws_access_key_id and         aws_secret_access_key.
+   <img width="870" height="469" alt="image" src="https://github.com/user-attachments/assets/357f3bdf-16ef-4ce2-8625-807bf3290226" />
+
+   <img width="880" height="472" alt="image" src="https://github.com/user-attachments/assets/17df5613-6f16-4110-8149-322365c39305" />
+
+
+   
