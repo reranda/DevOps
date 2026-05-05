@@ -1,0 +1,19 @@
+# Terraform local provider/plugin directory
+terraform-cicd-practice/.terraform/
+
+# Terraform state files
+terraform-cicd-practice/*.tfstate
+terraform-cicd-practice/*.tfstate.*
+
+# Terraform variable files - may contain secrets
+terraform-cicd-practice/*.tfvars
+terraform-cicd-practice/*.tfvars.json
+
+# Terraform crash logs
+terraform-cicd-practice/crash.log
+terraform-cicd-practice/crash.*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
