@@ -486,4 +486,76 @@ PS D:\Learning_Projects\DevOps>
 ```
 
 Resolution:
-Run following commands from repo root
+Make sure `.gitignore` file contains these lines:
+
+```
+# Terraform generated folders
+terraform-cicd-practice/.terraform/
+terraform-backend-bootstrap/.terraform/
+
+# Terraform state files
+terraform-cicd-practice/*.tfstate
+terraform-cicd-practice/*.tfstate.*
+terraform-backend-bootstrap/*.tfstate
+terraform-backend-bootstrap/*.tfstate.*
+
+# Terraform variable files
+terraform-cicd-practice/*.tfvars
+terraform-cicd-practice/*.tfvars.json
+terraform-backend-bootstrap/*.tfvars
+terraform-backend-bootstrap/*.tfvars.json
+
+# Crash logs
+terraform-cicd-practice/crash.log
+terraform-cicd-practice/crash.*.log
+terraform-backend-bootstrap/crash.log
+terraform-backend-bootstrap/crash.*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+```
+
+1. Run following commands from repo root.
+```
+cd D:\Learning_Projects\DevOps
+```
+
+2. Reset your unpushed commits but keep the files
+```
+git reset --soft origin/main
+```
+3. Then unstage everything
+```
+git reset
+```
+This keeps your actual files in the folder, but removes the bad local commit history that included the huge provider file.
+
+4. Remove Terraform generated files from Git tracking
+```
+git rm -r --cached --ignore-unmatch terraform-backend-bootstrap/.terraform
+git rm -r --cached --ignore-unmatch terraform-cicd-practice/.terraform
+
+git rm --cached --ignore-unmatch terraform-backend-bootstrap/*.tfstate
+git rm --cached --ignore-unmatch terraform-backend-bootstrap/*.tfstate.*
+git rm --cached --ignore-unmatch terraform-cicd-practice/*.tfstate
+git rm --cached --ignore-unmatch terraform-cicd-practice/*.tfstate.*
+```
+
+5. delete local `.terraform` folders
+```
+Remove-Item -Recurse -Force .\terraform-backend-bootstrap\.terraform
+Remove-Item -Recurse -Force .\terraform-cicd-practice\.terraform
+```
+
+6. Add, commit, commit and push
+```
+git add .
+git status
+git ls-files | findstr /I ".terraform"
+git ls-files | findstr /I "terraform-provider"
+git ls-files | findstr /I "tfstate"
+git commit -m "Cleanup stale records and retry"
+git push
+```
