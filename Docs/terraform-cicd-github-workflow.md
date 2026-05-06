@@ -935,7 +935,7 @@ This will make sure, The reviewed plan is exactly what gets applied, no surprise
    cd D:\Learning_Projects\DevOps\terraform-cicd-practice
    terraform fmt -recursive
    
-   cd D:\Learning_Projects\DevOps
+   cd D:\Learning_Projects\DevOps-Home-Lab
    git add .
    git commit -m "Apply saved Terraform plan artifact"
    git push
