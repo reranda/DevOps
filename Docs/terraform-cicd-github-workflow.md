@@ -549,7 +549,7 @@ Remove-Item -Recurse -Force .\terraform-backend-bootstrap\.terraform
 Remove-Item -Recurse -Force .\terraform-cicd-practice\.terraform
 ```
 
-6. Add, commit, commit and push
+6. Add, commit, and push
 ```
 git add .
 git status
