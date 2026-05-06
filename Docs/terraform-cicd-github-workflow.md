@@ -55,7 +55,8 @@ provider "aws" {
 }
 ```
 
-This section is important because GutHub action runner is temporary, which means it starts, run the job, and disappears. So your state is gone. When you run the code next time, resources will be redeployed by creating duplicate. To avoid this, Terraform will be stored on a S3 bucket.
+This section is important because GutHub action runner is temporary, which means it starts, run the job, and disappears. So your state is gone. When you run the code next time, resources will be redeployed by creating duplicates. To avoid this, Terraform will be stored the deployment state on the S3 bucket.
+The S3 backend stores state at the object path defined by key, inside the bucket defined by bucket. The `use_lockfile = true` setting enables S3-based state locking.
 
 ```
 backend "s3" {
@@ -247,7 +248,18 @@ output "backend_bucket_arn" {
 }
 ```
 
-5. Now we create GitHub action flow. Folder structure would be like below.
+5. Deploy the Backend-Bootstrap code
+This deployment should be done prior to anyother deployments because, this will deploye the S3 bucket and this bucket is required to store state of the deployments that will be done through GitHub workflows.
+```
+cd D:\Learning_Projects\DevOps-Home-Lab\terraform-backend-bootstrap
+terraform init
+terraform fmt -recursive
+terraform validate
+terraform plan
+terraform apply
+```
+
+6. Now we create GitHub action flow. Folder structure would be like below.
 ```
 DevOps-Home-Lab/
 │
@@ -380,7 +392,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 ```
 
-6. Create .gitignore file in the root of the Git repo.
+7. Create `.gitignore` file in the root of the Git repo.
 ```
 DevOps-Home-Lab/
 │
@@ -436,11 +448,17 @@ Thumbs.db
 .vscode/
 ```
 
-7. Add AWS credentials to GitHub Secrets
+8. Add AWS credentials to GitHub Secrets
    In the GitHub dashboard, go to `DevOps-Home-Lab` -> `Settings` -> `Secrets and variables` -> `Actions` Click on `New repository secret` button and create two Secrets for aws_access_key_id and         aws_secret_access_key.
    <img width="870" height="469" alt="image" src="https://github.com/user-attachments/assets/357f3bdf-16ef-4ce2-8625-807bf3290226" />
 
    <img width="880" height="472" alt="image" src="https://github.com/user-attachments/assets/17df5613-6f16-4110-8149-322365c39305" />
 
-
-   
+9. Commit and push
+   Now commit and push the changes to GitHub. It will trigger the GitHub workflow and automatically deploy the infrastructure.
+   ```
+   cd D:\Learning_Projects\DevOps
+   git add .
+   git commit -m "Initial commit to initialize the workflow deployment"
+   git push
+   ```
