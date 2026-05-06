@@ -468,5 +468,22 @@ Now commit and push the changes to GitHub. It will trigger the GitHub workflow a
 ### 6. Troubleshooting
 Problem:
 ```
-PS D:\Learning_Projects\DevOps> git commit -m "Add manual Terraform destroy workflow" [main a8da331] Add manual Terraform destroy workflow 1 file changed, 217 deletions(-) delete mode 100644 terraform-backend-bootstrap/terraform.tfstate PS D:\Learning_Projects\DevOps> git push Enumerating objects: 39, done. Counting objects: 100% (39/39), done. Delta compression using up to 8 threads Compressing objects: 100% (24/24), done. Writing objects: 100% (32/32), 177.27 MiB | 6.04 MiB/s, done. Total 32 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0) remote: Resolving deltas: 100% (9/9), completed with 4 local objects. remote: error: Trace: 1cac36bf3023c644bd33087ba93b9fd10fefcfc04e7588d844373145f074b98c remote: error: See https://gh.io/lfs for more information. remote: error: File terraform-backend-bootstrap/.terraform/providers/registry.terraform.io/hashicorp/aws/6.43.0/windows_amd64/terraform-provider-aws_v6.43.0_x5.exe is 854.74 MB; this exceeds GitHub's file size limit of 100.00 MB remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com. To https://github.com/reranda/DevOps.git ! [remote rejected] main -> main (pre-receive hook declined) error: failed to push some refs to 'https://github.com/reranda/DevOps.git' PS D:\Learning_Projects\DevOps>
+PS D:\Learning_Projects\DevOps> git push 
+Enumerating objects: 39, done. 
+Counting objects: 100% (39/39), done. 
+Delta compression using up to 8 threads Compressing objects: 100% (24/24), done. 
+Writing objects: 100% (32/32), 177.27 MiB | 6.04 MiB/s, done. 
+Total 32 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0) 
+remote: Resolving deltas: 100% (9/9), completed with 4 local objects. 
+remote: error: Trace: 1cac36bf3023c644bd33087ba93b9fd10fefcfc04e7588d844373145f074b98c 
+remote: error: See https://gh.io/lfs for more information. 
+remote: error: File terraform-backend-bootstrap/.terraform/providers/registry.terraform.io/hashicorp/aws/6.43.0/windows_amd64/terraform-provider-aws_v6.43.0_x5.exe is 854.74 MB; this exceeds GitHub's file size limit of 100.00 MB remote: 
+error: GH001: Large files detected. 
+You may want to try Git Large File Storage - https://git-lfs.github.com. To https://github.com/reranda/DevOps.git 
+! [remote rejected] main -> main (pre-receive hook declined) 
+error: failed to push some refs to 'https://github.com/reranda/DevOps.git' 
+PS D:\Learning_Projects\DevOps>
 ```
+
+Resolution:
+Run following commands from repo root
