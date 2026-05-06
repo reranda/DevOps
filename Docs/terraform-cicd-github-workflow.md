@@ -608,6 +608,202 @@ GitHub documents recommended to use OIDC for GitHub Actions request short-lived 
       - Identity provider: `token.actions.githubusercontent.com`
       - Audience: `sts.amazonaws.com`
       - GitHub organization: `bvsgit-auth`
+      - Click `Next`
+      - Add least priviliges
+      - Role name: `BVS-GitHubActions-Terraform-Role`
+      - Create the role
+3. Configure the trust policy
+   After creating the role, open it. Go to `IAM` -> `BVS-GitHubActions-Terraform-Role` -> `Trust relationships` -> `Edit trust policy`. Replace the existing policy with the following one.
+   ```
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "Federated": "arn:aws:iam::<AWS_ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+         },
+         "Action": "sts:AssumeRoleWithWebIdentity",
+         "Condition": {
+           "StringEquals": {
+             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+           },
+           "StringLike": {
+             "token.actions.githubusercontent.com:sub": [
+               "repo:reranda/DevOps-Home-Lab:*"
+             ]
+           }
+         }
+       }
+     ]
+   }
+   ```
+   Important to note that. Please replace the **AWS Account** number and **"repo:reranda/DevOps-Home-Lab:*"** use the correct GITHub repo.
+4. Copy the IAM role ARN
+   Open the role and copy its ARN. It is something like `arn:aws:iam::709872263987:role/BVS-GitHubActions-Terraform-Role`. Now add this ARN to GitHub as a secret or variable. Go to repo `Settings` ->    `Secrets and variables` -> `Actions` -> `New repository secret`.
+      - Name: `AWS_ROLE_ARN`
+      - Secret : `arn:aws:iam::709872263987:role/BVS-GitHubActions-Terraform-Role`
+  
+        <img width="863" height="462" alt="image" src="https://github.com/user-attachments/assets/b2ccfa87-aa1b-4d8f-a554-b8dbb1bfa643" />
+
+5. Update GitHub Actions workflow
+   #### `terraform.yml`
+   ```
+   name: Terraform CI/CD
+   
+   on:
+     pull_request:
+       branches:
+         - main
+   
+     push:
+       branches:
+         - main
+   
+     workflow_dispatch:
+   
+   permissions:
+     id-token: write
+     contents: read
+   
+   jobs:
+     terraform-plan:
+       name: Terraform Plan
+       runs-on: ubuntu-latest
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Configure AWS Credentials
+           uses: aws-actions/configure-aws-credentials@v4
+           with:
+             role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+             aws-region: eu-west-2
+   
+         - name: Terraform Format Check
+           run: terraform fmt -check -recursive
+   
+         - name: Terraform Init
+           run: terraform init
+   
+         - name: Terraform Validate
+           run: terraform validate
+   
+         - name: Terraform Plan
+           run: terraform plan -input=false
+   
+     terraform-apply:
+       name: Terraform Apply
+       runs-on: ubuntu-latest
+       needs: terraform-plan
+   
+       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+   
+       environment:
+         name: dev
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Configure AWS Credentials
+           uses: aws-actions/configure-aws-credentials@v4
+           with:
+             role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+             aws-region: eu-west-2
+   
+         - name: Terraform Init
+           run: terraform init
+   
+         - name: Terraform Apply
+           run: terraform apply -auto-approve -input=false
+   ```
+
+   #### `terraform-destroy.yml`
+   ```
+   name: Terraform Destroy
+   
+   on:
+     workflow_dispatch:
+   
+   permissions:
+     id-token: write
+     contents: read
+   
+   jobs:
+     terraform-destroy:
+       name: Terraform Destroy
+       runs-on: ubuntu-latest
+   
+       environment:
+         name: dev
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Configure AWS Credentials
+           uses: aws-actions/configure-aws-credentials@v4
+           with:
+             role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+             aws-region: eu-west-2
+   
+         - name: Terraform Init
+           run: terraform init
+   
+         - name: Terraform Destroy Plan
+           run: terraform plan -destroy -input=false
+   
+         - name: Terraform Destroy
+           run: terraform destroy -auto-approve -input=false
+   ```
+
+6. Commit and push
+   ```
+   cd D:\Learning_Projects\DevOps
+   
+   git add .github/workflows/terraform.yml
+   git add .github/workflows/terraform-destroy.yml
+   git commit -m "Replace AWS keys with GitHub OIDC"
+   git push
+   ```
 
 ### 7. Troubleshooting
 Problem:
