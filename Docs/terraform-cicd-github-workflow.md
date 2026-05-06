@@ -465,7 +465,130 @@ Now commit and push the changes to GitHub. It will trigger the GitHub workflow a
    git commit -m "Initial commit to initialize the workflow deployment"
    git push
    ```
-### 6. Troubleshooting
+### 6. Add manual approval
+1. Create a GitHub environment called `dev`. Then update the workflow so the apply job waits for approval. In order to enable reviewer appoval, repository should be **Public**. Go ro `Settings` -> `Environments` -> `New environment`. Set the Name as **dev** and click `Configure environment`.
+2. Now add the approver's name and click **Save protection rules**
+   
+   <img width="807" height="653" alt="image" src="https://github.com/user-attachments/assets/d6ddd075-8568-4899-ace0-fe6256d8cbc7" />
+
+3. Use this improved version of `.github/workflows/terraform.yml` file.
+   ```
+   name: Terraform CI/CD
+
+   on:
+     pull_request:
+       branches:
+         - main
+   
+     push:
+       branches:
+         - main
+   
+     workflow_dispatch:
+   
+   jobs:
+     terraform-plan:
+       name: Terraform Plan
+       runs-on: ubuntu-latest
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Terraform Format Check
+           run: terraform fmt -check -recursive
+   
+         - name: Terraform Init
+           run: terraform init
+           env:
+             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   
+         - name: Terraform Validate
+           run: terraform validate
+   
+         - name: Terraform Plan
+           run: terraform plan -input=false
+           env:
+             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   
+     terraform-apply:
+       name: Terraform Apply
+       runs-on: ubuntu-latest
+       needs: terraform-plan
+   
+       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+   
+       environment:
+         name: dev
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Terraform Init
+           run: terraform init
+           env:
+             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   
+         - name: Terraform Apply
+           run: terraform apply -auto-approve -input=false
+           env:
+             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+   ```
+4. Do the same for destroy work flow. Change the following section;
+   ```
+   jobs:
+     terraform-destroy:
+       name: Terraform Destroy
+       runs-on: ubuntu-latest
+   ```
+   replace with following code.
+   ```
+   jobs:
+     terraform-destroy:
+       name: Terraform Destroy
+       runs-on: ubuntu-latest
+   
+       environment:
+         name: dev
+   ```
+5. Add, commit, and push
+   ```
+   git add .
+   git commit -m "Add manual approval for Terraform apply and destroy"
+   git push
+   ```
+7. You will receive a mail to notify it. Also you can see the approval requests at `Actions`
+
+### 7. Troubleshooting
 Problem:
 ```
 PS D:\Learning_Projects\DevOps> git push 
