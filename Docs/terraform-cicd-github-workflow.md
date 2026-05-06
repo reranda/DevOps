@@ -805,7 +805,143 @@ GitHub documents recommended to use OIDC for GitHub Actions request short-lived 
    git push
    ```
 
-### 7. Troubleshooting
+### 8. Save Terraform plan as artifact and apply that exact plan
+In our currnt workflow, we do not save the plan generated in the `plan` state. In some situations, that plan can be differ with the plan generated at the `apply` stage. But enterprise workflows usually generate a plan file, then apply exactly that plan.
+```
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+This will make sure, The reviewed plan is exactly what gets applied, no surprise changes between plan and apply. Better audit trail. We need to configure in the workflow pipeline as well
+1. Update your `terraform.yml`
+   Replace `terraform.yml` file content with the following code.
+   ```
+   name: Terraform CI/CD
+   
+   on:
+     pull_request:
+       branches:
+         - main
+   
+     push:
+       branches:
+         - main
+   
+     workflow_dispatch:
+   
+   permissions:
+     id-token: write
+     contents: read
+   
+   jobs:
+     terraform-plan:
+       name: Terraform Plan
+       runs-on: ubuntu-latest
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Configure AWS Credentials
+           uses: aws-actions/configure-aws-credentials@v4
+           with:
+             role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+             aws-region: eu-west-2
+   
+         - name: Terraform Format Check
+           run: terraform fmt -check -recursive
+   
+         - name: Terraform Init
+           run: terraform init
+   
+         - name: Terraform Validate
+           run: terraform validate
+   
+         - name: Terraform Plan
+           run: terraform plan -input=false -out=tfplan
+   
+         - name: Upload Terraform Plan Artifact
+           uses: actions/upload-artifact@v4
+           with:
+             name: terraform-plan
+             path: terraform-cicd-practice/tfplan
+             retention-days: 1
+   
+     terraform-apply:
+       name: Terraform Apply
+       runs-on: ubuntu-latest
+       needs: terraform-plan
+   
+       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+   
+       environment:
+         name: dev
+   
+       defaults:
+         run:
+           working-directory: terraform-cicd-practice
+   
+       env:
+         TF_VAR_bucket_name: bvs-terra-remote-05052026
+         AWS_REGION: eu-west-2
+         AWS_DEFAULT_REGION: eu-west-2
+   
+       steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+   
+         - name: Setup Terraform
+           uses: hashicorp/setup-terraform@v3
+   
+         - name: Configure AWS Credentials
+           uses: aws-actions/configure-aws-credentials@v4
+           with:
+             role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+             aws-region: eu-west-2
+   
+         - name: Terraform Init
+           run: terraform init
+   
+         - name: Download Terraform Plan Artifact
+           uses: actions/download-artifact@v4
+           with:
+             name: terraform-plan
+             path: terraform-cicd-practice
+   
+         - name: Terraform Apply Saved Plan
+           run: terraform apply -input=false tfplan
+   ```
+   Important to not that. Terraform plan files can contain sensitive values. So in real enterprise setups, artifacts should have short retention and restricted access. In this setup, we’ll keep the artifact only for 1 day
+
+2. Update `.gitignore`
+   ```
+   # Terraform plan files
+   terraform-cicd-practice/tfplan
+   terraform-cicd-practice/*.tfplan
+   ```
+3. Commit and push
+   ```
+   cd D:\Learning_Projects\DevOps\terraform-cicd-practice
+   terraform fmt -recursive
+   
+   cd D:\Learning_Projects\DevOps
+   git add .
+   git commit -m "Apply saved Terraform plan artifact"
+   git push
+   ```
+
+### 9. Troubleshooting
 Problem:
 ```
 PS D:\Learning_Projects\DevOps> git push 
