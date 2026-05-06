@@ -17,7 +17,7 @@ In this document, all the configurations will be done on Windows 11 computer. Sa
    PS D:\Learning_Projects> git clone https://github.com/reranda/DevOps-Home-Lab.git`.
    ```
 ### 2. Setting up folder structure on local Git repo
-    ```
+   ```
     DevOps-Home-Lab/terraform-cicd-practice/
     │
     ├── main.tf
@@ -28,7 +28,7 @@ In this document, all the configurations will be done on Windows 11 computer. Sa
     └── .github/
         └── workflows/
             └── terraform.yml
-    ```
+   ```
 1. Create `terraform-cicd-practice` folder inside the new Git repo and add the following Terraform codes:
    ##### `provider.tf`
    ```
