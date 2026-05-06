@@ -1,11 +1,12 @@
 # GitHub Workflow for Terraform CI/CD
 
 ### Prerequisits:
-1. Terraform installation
-2. AWS CLI installation
-3. Local GIT installation
-4. GitHub Account
-5. AWS IAM access keys
+Following requirements needs to be ready to proceed with the following configuration.
+- Terraform installation
+- AWS CLI installation
+- Local GIT installation
+- GitHub Account
+- AWS IAM access keys
 
 In this document, all the configurations will be done on Windows 11 computer. Same steps can be applied for the set up in a Linux too.
 
