@@ -797,7 +797,7 @@ GitHub documents recommended to use OIDC for GitHub Actions request short-lived 
 
 6. Commit and push
    ```
-   cd D:\Learning_Projects\DevOps
+   cd D:\Learning_Projects\DevOps-Home-Lab
    
    git add .github/workflows/terraform.yml
    git add .github/workflows/terraform-destroy.yml
