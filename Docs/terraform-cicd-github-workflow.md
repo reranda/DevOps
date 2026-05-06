@@ -457,7 +457,7 @@ Thumbs.db
 9. Commit and push
    Now commit and push the changes to GitHub. It will trigger the GitHub workflow and automatically deploy the infrastructure.
    ```
-   cd D:\Learning_Projects\DevOps
+   cd D:\Learning_Projects\DevOps-Home-Lab
    git add .
    git commit -m "Initial commit to initialize the workflow deployment"
    git push
