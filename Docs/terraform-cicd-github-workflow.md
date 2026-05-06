@@ -588,6 +588,27 @@ Now commit and push the changes to GitHub. It will trigger the GitHub workflow a
    ```
 7. You will receive a mail to notify it. Also you can see the approval requests at `Actions`
 
+### 7. Replace AWS keys with GitHub OIDC
+GitHub documents recommended to use OIDC for GitHub Actions request short-lived credentials from AWS instead of storing long-lived AWS keys in GitHub Secrets. 
+
+1. Create the GitHub OIDC provider in AWS
+   This is created once per AWS account. Go to `AWS Console` -> `IAM` -> `Identity providers` -> `Add provider`.
+   Select:
+      - Provider type: `OpenID Connect`
+      - Provider URL: `https://token.actions.githubusercontent.com`
+      - Audience: `sts.amazonaws.com`
+      
+      <img width="1540" height="448" alt="image" src="https://github.com/user-attachments/assets/6e315cd4-e890-4b53-af5e-3481533f5904" />
+
+      - Then click `Add provider`
+2. Create an IAM role for GitHub Actions
+   Go to `IAM` -> `Roles` -> `Create role`.
+   Choose:
+      - Trusted entity type: `Web identity`
+      - Identity provider: `token.actions.githubusercontent.com`
+      - Audience: `sts.amazonaws.com`
+      - GitHub organization: `bvsgit-auth`
+
 ### 7. Troubleshooting
 Problem:
 ```
