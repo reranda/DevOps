@@ -48,6 +48,23 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v5
+
+      - name: Init TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint --recursive --format compact
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform-cicd-practice
+          framework: terraform
+          quiet: true
+          soft_fail: true
+
       - name: Terraform Validate
         run: terraform validate
 
