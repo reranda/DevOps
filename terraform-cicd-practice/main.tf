@@ -1,7 +1,8 @@
-#checkov:skip=CKV_AWS_18:Access logging will be added later with a dedicated logging bucket
-#checkov:skip=CKV2_AWS_62:Event notifications are not required for this demo bucket
-#checkov:skip=CKV_AWS_144:Cross-region replication is not required for this lab environment
 resource "aws_s3_bucket" "demo_bucket" {
+  #checkov:skip=CKV_AWS_18:Access logging will be added later with a dedicated logging bucket
+  #checkov:skip=CKV2_AWS_62:Event notifications are not required for this demo bucket
+  #checkov:skip=CKV_AWS_144:Cross-region replication is not required for this lab environment
+
   bucket = var.bucket_name
 
   tags = {
@@ -61,8 +62,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket" {
   }
 }
 
-#checkov:skip=CKV2_AWS_11:VPC flow logs will be added later with CloudWatch log group and IAM role
 resource "aws_vpc" "main" {
+  #checkov:skip=CKV2_AWS_11:VPC flow logs will be added later with CloudWatch log group and IAM role
+
   cidr_block = "10.0.0.0/16"
 
   tags = {
