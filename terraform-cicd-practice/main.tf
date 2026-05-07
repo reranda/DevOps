@@ -44,7 +44,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket" {
   bucket = aws_s3_bucket.demo_bucket.id
 
   rule {
-    id     = "delete-old-noncurrent-versions"
+    id     = "delete-old-noncurrent-versions-and-abort-incomplete-uploads"
     status = "Enabled"
 
     filter {
@@ -53,6 +53,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket" {
 
     noncurrent_version_expiration {
       noncurrent_days = 30
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
     }
   }
 }
