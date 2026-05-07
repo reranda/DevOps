@@ -63,7 +63,7 @@ jobs:
           directory: terraform-cicd-practice
           framework: terraform
           quiet: true
-          soft_fail: true
+          soft_fail: false
 
       - name: Terraform Validate
         run: terraform validate
