@@ -20,6 +20,10 @@ terraform-cicd-practice/crash.*.log
 terraform-backend-bootstrap/crash.log
 terraform-backend-bootstrap/crash.*.log
 
+# Terraform plan files
+terraform-cicd-practice/tfplan
+terraform-cicd-practice/*.tfplan
+
 # OS/editor logs
 .DS_Store
 Thumbs.db

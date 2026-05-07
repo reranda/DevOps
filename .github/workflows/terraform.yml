@@ -25,7 +25,7 @@ jobs:
         working-directory: terraform-cicd-practice
 
     env:
-      TF_VAR_bucket_name: bvs-terra-remote-05052026
+      TF_VAR_bucket_name: bvs-terra-remote-07052026
       AWS_REGION: eu-west-2
       AWS_DEFAULT_REGION: eu-west-2
 
@@ -52,7 +52,14 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -input=false
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Upload Terraform Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: terraform-cicd-practice/tfplan
+          retention-days: 1
 
   terraform-apply:
     name: Terraform Apply
@@ -69,7 +76,7 @@ jobs:
         working-directory: terraform-cicd-practice
 
     env:
-      TF_VAR_bucket_name: bvs-terra-remote-05052026
+      TF_VAR_bucket_name: bvs-terra-remote-07052026
       AWS_REGION: eu-west-2
       AWS_DEFAULT_REGION: eu-west-2
 
@@ -89,5 +96,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
+      - name: Download Terraform Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: terraform-cicd-practice
+
+      - name: Terraform Apply Saved Plan
+        run: terraform apply -input=false tfplan
