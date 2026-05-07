@@ -21,7 +21,7 @@ jobs:
         working-directory: terraform-cicd-practice
 
     env:
-      TF_VAR_bucket_name: bvs-terra-remote-05052026
+      TF_VAR_bucket_name: bvs-terra-remote-07052026
       AWS_REGION: eu-west-2
       AWS_DEFAULT_REGION: eu-west-2
 
